@@ -17,6 +17,7 @@ import sahri from "../images/sahri.png"
 import iftar from "../images/iftar.png"
 import tahajjud from "../images/tahajjud.png"
 import SmallCard from "../components/SmallCard.svelte";
+import locationPin from "../images/location.png";
 let geo;
 let days = [];
 let today = [];
@@ -39,6 +40,7 @@ let month = new Date().getMonth();
 let year = new Date().getFullYear();
 let thisDate = new Date().getDate();
 let prayers = [];
+let location = [];
 bnSalatNames.subscribe((data) => {
  bnSalat = data;
 });
@@ -121,23 +123,30 @@ let triggerAPI = async (todayDate) => {
         let justPrayer = todayPrayers.filter(p=> p.name != 'Sunrise' && p.name != 'Sunset' && p.name != 'Imsak' && p.name != 'Midnight' && p.name != 'Firstthird' && p.name != 'Sahri');
         //console.log(justPrayer);
         let key; 
-        let found = true;
+        let found = false;
         for(let i=0; i<justPrayer.length; i++) {
             if(new Date() >= new Date(justPrayer[i].start) && new Date() <= new Date(justPrayer[i].end)) {
                 prayers.push({...justPrayer[i], title: "Running Prayer", subtitle: true});
                 key = i;
-                break;
-            } else {
-                prayers.push({...todayPrayers[8], title: "Running Prayer", subtitle: true, name: "Tahajjud"});
-                found = false;
+                found = true;
                 break;
             }
          }
 
-        if(found)
-        prayers.push({...justPrayer[key], title: 'Next Prayer', subtitle: true});
-        else 
-        prayers.push({...justPrayer[0], title: 'Next Prayer', subtitle: true});
+         if(!found){
+            //no running prayer
+            if(new Date() < new Date(justPrayer[1].start)){
+               // prayers.push({...todayPrayers[8], title: "Running Prayer", subtitle: true, name: "No Prayer"});
+               prayers.push({...justPrayer[1], title: 'Next Prayer', subtitle: true});
+            }else{
+                prayers.push({...todayPrayers[8], title: "Running Prayer", subtitle: true, name: "Tahajjud"});
+                prayers.push({...justPrayer[0], title: 'Next Prayer', subtitle: true});
+            }
+         }else {
+            prayers.push({...justPrayer[key+1], title: 'Next Prayer', subtitle: true});
+         }
+
+        
 
         prayers.push({...todayPrayers[10], title: 'Sahri', subtitle: false});
         prayers.push({...todayPrayers[4], title: 'Iftar', subtitle: false, name: "Iftar"});
@@ -156,7 +165,9 @@ let triggerAPI = async (todayDate) => {
 let geoReverse = async (lat, lon) => {
     const res = await fetch(`https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lon}&apiKey=b7e39c8621b047638a03d656bd199a75`)
     let data = await res.json();
-    console.log(data);
+    data = data.features[0].properties;
+    location = [data];
+    console.log(location);
 }
 onMount(async () => {
     // console.log('Mounted!');
@@ -170,13 +181,13 @@ onMount(async () => {
             console.log(error.message);
             console.log("Since Geolocation is not found, default location have been set to lat: '25.7414486', lon: '89.2468397'")
             resolve({lat: "25.7414486", lon: "89.2468397"});
-            // geoReverse("25.7414486", "89.2468397");
+            geoReverse("25.7414486", "89.2468397");
         });
         navigator.geolocation.getCurrentPosition((position, showError) => {
             const lat = position.coords.latitude;
             const lon = position.coords.longitude;
             console.log(lat, lon);
-                // geoReverse(lat, lon);
+                geoReverse(lat, lon);
                 resolve({lat, lon});
                 
         });
@@ -225,6 +236,13 @@ const changeDay = (date, month, year) => {
 
 let x;
 </script>
+{#each location as loc}
+<div class="location_header">
+    <div class="loc"><img  alt="" src={locationPin}>{loc.name ? loc.name : loc.city}</div>
+    <div class="sub_loc">{loc.street ? loc.street : loc.city}, {loc.state}</div>
+</div>
+{/each}
+
 
 <div class="grid">
 {#each prayers as prayer}
@@ -274,6 +292,28 @@ let x;
     left: 0;
     clip-path: polygon(100% 100%, 0% 100% , 0.00% 60.08%, 1.00% 60.54%, 2.00% 61.02%, 3.00% 61.50%, 4.00% 61.99%, 5.00% 62.48%, 6.00% 62.96%, 7.00% 63.45%, 8.00% 63.93%, 9.00% 64.41%, 10.00% 64.88%, 11.00% 65.33%, 12.00% 65.77%, 13.00% 66.20%, 14.00% 66.61%, 15.00% 67.00%, 16.00% 67.36%, 17.00% 67.71%, 18.00% 68.03%, 19.00% 68.32%, 20.00% 68.58%, 21.00% 68.82%, 22.00% 69.03%, 23.00% 69.20%, 24.00% 69.34%, 25.00% 69.45%, 26.00% 69.53%, 27.00% 69.57%, 28.00% 69.58%, 29.00% 69.56%, 30.00% 69.50%, 31.00% 69.41%, 32.00% 69.28%, 33.00% 69.13%, 34.00% 68.94%, 35.00% 68.72%, 36.00% 68.47%, 37.00% 68.19%, 38.00% 67.89%, 39.00% 67.56%, 40.00% 67.20%, 41.00% 66.83%, 42.00% 66.43%, 43.00% 66.01%, 44.00% 65.58%, 45.00% 65.13%, 46.00% 64.67%, 47.00% 64.20%, 48.00% 63.72%, 49.00% 63.24%, 50.00% 62.75%, 51.00% 62.26%, 52.00% 61.77%, 53.00% 61.28%, 54.00% 60.81%, 55.00% 60.33%, 56.00% 59.87%, 57.00% 59.43%, 58.00% 58.99%, 59.00% 58.58%, 60.00% 58.18%, 61.00% 57.80%, 62.00% 57.45%, 63.00% 57.12%, 64.00% 56.81%, 65.00% 56.53%, 66.00% 56.28%, 67.00% 56.06%, 68.00% 55.87%, 69.00% 55.72%, 70.00% 55.59%, 71.00% 55.50%, 72.00% 55.44%, 73.00% 55.42%, 74.00% 55.43%, 75.00% 55.47%, 76.00% 55.55%, 77.00% 55.66%, 78.00% 55.80%, 79.00% 55.97%, 80.00% 56.18%, 81.00% 56.41%, 82.00% 56.68%, 83.00% 56.97%, 84.00% 57.29%, 85.00% 57.63%, 86.00% 58.00%, 87.00% 58.39%, 88.00% 58.80%, 89.00% 59.22%, 90.00% 59.66%, 91.00% 60.12%, 92.00% 60.59%, 93.00% 61.06%, 94.00% 61.54%, 95.00% 62.03%, 96.00% 62.52%, 97.00% 63.01%, 98.00% 63.50%, 99.00% 63.98%, 100.00% 64.45%);
     } */
+     .location_header{
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        margin-bottom: 10px;
+        box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+        padding: 5px;
+        border-radius: 20px;
+        padding-right: 10px;
+     }
+
+     .loc img {
+        height: 20px;
+     }
+    .loc{
+        display: flex;
+        align-items: center;
+    }
+
+    .sub_loc{
+        font-size: 10px;
+    }
 
     .grid{
         display: grid;

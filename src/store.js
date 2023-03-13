@@ -65,7 +65,7 @@ const Tools = writable ({
         let a = date.split(' ')[4];
         let hr = parseInt(a.split(':')[0]);
         let min = (a.split(':')[1]);
-        if(hr>12){
+        if(hr>=12){
             hr -= 12;
         }
         return hr+':'+min;
@@ -74,7 +74,7 @@ const Tools = writable ({
         let a = date.split(' ')[4];
         let hr = parseInt(a.split(':')[0]);
         let m = "am";
-        if(hr>12){
+        if(hr>=12){
             m = "pm";
             hr -= 12;
         }
@@ -85,7 +85,7 @@ const Tools = writable ({
         let hr = parseInt(time.split(":")[0]);
         let min = time.split(":")[1];
         let m = "am";
-        if(hr>12){
+        if(hr>=12){
             hr -= 12;
             m = "pm";
         }
